@@ -2,3 +2,6 @@
 .envrc
 .git
 .ipynb_checkpoints
+draft/
+registry/
+__pycache__
