@@ -72,4 +72,4 @@ def return_score_torch(image):
 
 if __name__ == '__main__':
 
-    pass
+	pass
