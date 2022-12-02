@@ -63,7 +63,7 @@ def full_train_model_4(train_data_path):
                 X_train,
                 y_train,
                 batch_size=16,
-                patience=1, #### A CHANGER POUR patience=4
+                patience=4, #### A CHANGER POUR patience=4
                 validation_split=0.3)
 
     print(f"\n✅ model trained on {len(X_train)} pictures.")
@@ -104,22 +104,22 @@ def pred_model_4(dico):
     # Getting list of dictionnaries / 1 dictionnary = 1 face + information
     faces_list = dico.get("cropped_faces", "No such key as 'cropped_faces'")
 
+
     if faces_list == "No such key as 'cropped_faces'":
         print("Wrong input for model 4")
 
-    if len(faces_list)==0: # Condition à faire sur le %age de la face
+    elif len(faces_list)==0: # Condition à faire sur le %age de la face
         print("No relevant face to analyse by model 4")
 
-    #In the case of a simple portrait (only one face detected)
-    #ATTENTION
 
-    if len(faces_list)==1:
+    #In the case of a simple portrait (only one face detected)
+    elif len(faces_list)==1:
         input_face = faces_list[0].get("face", "Review key names of input dictionnary")
 
         if input_face == "Review key names of input dictionnary":
             print("MODEL 4 -> Review key names of input dictionnary")
 
-        face_processed = preprocess_model_4(input_face)
+        face_processed = preprocess_model_4(input_face) #à changer pour entrer np.array
         y_pred_proba = model.predict(convert_to_tensor([face_processed]), verbose=0) #import à faire pour le .predict ?
         associated_position_proba = {"straight_proba" :y_pred_proba[0][0],
                                         "up_proba" : y_pred_proba[0][1] ,
@@ -127,20 +127,24 @@ def pred_model_4(dico):
                                         "right_proba" : y_pred_proba[0][3]}
 
         dico["cropped_faces"][0]["associated_position_proba"] = associated_position_proba
-        print("\n✅ prediction done: ", dico)
+        print("\n✅ prediction done for 1 face: ", dico)
         return dico
-
-
 
     #In the case of a group portrait (more than one face detected)
     elif len(faces_list)>1:
-        print("Wrong input for model 4")
 
-        for dico in faces_list :
+        for faces in faces_list :
+            input_face = faces.get("face", "Review key names of input dictionnary") #face=np.array
+            face_processed = preprocess_model_4(input_face) #à changer pour entrer np.array
+            y_pred_proba = model.predict(convert_to_tensor([face_processed]), verbose=0)
+            associated_position_proba = {"straight_proba" :y_pred_proba[0][0],
+                                        "up_proba" : y_pred_proba[0][1] ,
+                                        "left_proba" : y_pred_proba[0][2],
+                                        "right_proba" : y_pred_proba[0][3]}
+            faces["associated_position_proba"] = associated_position_proba
 
-            pass
-
-
+        print("\n✅ prediction done for more than 1 face: ", dico)
+        return dico
 
 
 
@@ -170,8 +174,11 @@ if __name__ == '__main__':
     #                                "face" : "/Users/jeannebaron/code/duchesgo/image_selection/draft/image_test.jpeg",
     #                                "relative_surface": 0.5},
     #                               {"face_id" : "face_2",
-    #                                "face" : None,
+    #                                "face" : "/Users/jeannebaron/code/duchesgo/image_selection/draft/image_test_2.jpeg",
+    #                                "relative_surface": 0.5},
+    #                               {"face_id" : "face_3",
+    #                                "face" : "/Users/jeannebaron/code/duchesgo/image_selection/draft/image_test_3.jpeg",
     #                                "relative_surface": 0.5}]
     #            }
-    #print(dico_test_1)
-    #pred_model_4(dico_test_1)
+    ##print(dico_test_2)
+    #pred_model_4(dico_test_2)
