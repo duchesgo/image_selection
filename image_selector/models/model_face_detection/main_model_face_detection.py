@@ -9,7 +9,7 @@ import cv2
 import sys
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
-# from image_selection.temp_GD.OpenCV.params import xxxsss
+#  from image_selection.temp_GD.OpenCV.params import xxxsss
 
 
 # PARAMETRES
