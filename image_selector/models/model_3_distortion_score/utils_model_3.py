@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 from torchsummary import summary
-from preprocessing_model_3 import Image_load
+from image_selector.models.model_3_distortion_score.preprocessing_model_3 import Image_load
 from PIL import Image
 import os
 import torchvision.transforms as T

@@ -1,5 +1,5 @@
 import numpy as np
-from utils_model_3 import return_score_torch
+from image_selector.models.model_3_distortion_score.utils_model_3 import return_score_torch
 
 def pred_model_3_distortion_score(input_dictionnary):
     img=input_dictionnary["initial_image"]
