@@ -1,49 +1,32 @@
-import pandas as pd
-import numpy as np
+from getdata_model_1_clustering import img_to_ndarray
+from utils_model_1_clustering import preprocessed_X_clustering, extract_features, pca, clustering, dict_clustering
 # for the VGG model
 from keras.applications.vgg16 import VGG16
 from keras.models import Model
-# for dimension reduction
-from sklearn.decomposition import PCA
-# for clustering
-from sklearn.cluster import KMeans
 
 
-### EXTRACT FEATURES USING VGG16 MODEL
-
-# load model
-model = VGG16()
-# remove the output layer
-model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
-
-def extract_features(X_processed, model):
-    '''this fonction return a ndarray (X, features) using this model VGG as a feature extractor only'''
-    # preprocessing
-    X_resized = resize_X_clustering(X_processed)
-    X_preprocessed = preproc_X_clustering(X_resized)
-    # get the featur vector
-    features = model.predict(np.array(X_preprocessed),use_multiprocessing=True)
-    return features
-
-
-### DIMENSIONALITY REDUCTION (PCA)
-
-def pca_calcul_component(X_features):
-    pca = PCA()
-    features_pca = pca.fit_transform(X_features)
-    cumulated_variance = np.cumsum(pca.explained_variance_ratio_)
-    minimal_pc_count = len(cumulated_variance[cumulated_variance <= 0.8]) + 1
-    return minimal_pc_count
-
-def pca_features(X_features):
-    n_compo = pca_calcul_component(X_features)
-    pca_cluster = PCA(n_components=n_compo, random_state=22)
-    features_cluster = pca_cluster.fit_transform(X_features)
-    return features_cluster
+def model_clustering(X_path):
+    # Load X images and transform images into ndarray
+    X, list_names = img_to_ndarray(X_path)
+    # Preprocessed X
+    X_preprocessed = preprocessed_X_clustering(X)
+    # Model VGG16 : load, remove the output layer and extract features
+    model = VGG16()
+    model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
+    features = extract_features(X_preprocessed, model)
+    # Reduce dimension features (pca)
+    pca_features = pca(features)
+    # Find cluster
+    nb_clusters, dict_clusters = clustering(pca_features)
+    # Dictionnaire à jour
+    dict_clusters_final = dict_clustering(dict_clusters, list_names)
+    return nb_clusters, dict_clusters_final
 
 
-### CLUSTERING
-
-def clustering():
-    '''Function returning '''
-    pass
+# if __name__=='__main__':
+#     print('*** Sart test: main_model1_clustering ***')
+#     X_path = "/home/celinethomas/code/duchesgo/image_selection/draft/data/selection/"
+#     nb_clusters, result_clusters = model_clustering(X_path)
+#     print(f'Clusters number: {nb_clusters}')
+#     print(f'Clusters dict final: {result_clusters}')
+#     print('*** End test: main_model1_clustering ***')
