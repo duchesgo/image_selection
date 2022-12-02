@@ -39,7 +39,7 @@ def get_X_SPAC(dataset="SPAC",data_status="raw",first_index=None,last_index=None
 
     X_list=[]
 
-    accepted_img_type=["jpg"]
+    accepted_img_type=["jpg","png","bmp"]
 
     img_list=os.listdir(folder_path)
     img_list=[img for img in img_list if img[-3:] in accepted_img_type]
@@ -65,7 +65,13 @@ def get_X_SPAC(dataset="SPAC",data_status="raw",first_index=None,last_index=None
 
 def resize_X(X_list,hight=512,width=900):
     """This function return a list a resized tensor-image given a list of tensor-image"""
-    X_resize=[resize_with_pad(x,512,900) for x in X_list]
+    #X_resize=[resize_with_pad(x,512,900) for x in X_list]
+    X_resize=[]
+    for X in X_list:
+        shape_1=int(X.shape[1]*(512/X.shape[0]))
+        img_resize=resize_with_pad(X,512,shape_1)
+        X_resize.append(img_resize)
+
 
     return X_resize
 
@@ -136,12 +142,12 @@ def clean_processed_data(dataset="SPAC",data_status="processed"):
 def downsize_tensor_list(X_list):
     return [cast(x*255,"uint8") for x in X_list]
 
-def preprocess_pipeline(first_index=1,last_index=15):
+def preprocess_pipeline(dataset="SPAC",first_index=1,last_index=15):
     print("start downloading")
     print(f"downloading from index {first_index} to {last_index}")
-    download_data(dataset="SPAC",status="RAW",first_index=first_index,last_index=last_index)
+    download_data(dataset=dataset,status="RAW",first_index=first_index,last_index=last_index)
     print("start charging as np array")
-    X_list,name_list=get_X_SPAC(dataset="SPAC",data_status="raw")
+    X_list,name_list=get_X_SPAC(dataset=dataset,data_status="raw")
 
     print("start resizing")
     X_list=resize_X(X_list,hight=512,width=900)
@@ -153,18 +159,22 @@ def preprocess_pipeline(first_index=1,last_index=15):
 
     for i,X in enumerate(X_list):
         print(i)
-        store_data_local(X,name_list[i])
+        store_data_local(X,name_list[i],dataset=dataset,data_status="processed")
 
     print("start uploading")
-    upload_data(dataset="SPAC",data_status="processed")
+    upload_data(dataset=dataset,data_status="processed")
     print("cleaning")
-    clean_raw_data()
-    clean_processed_data()
+    clean_raw_data(dataset=dataset,data_status="raw")
+    clean_processed_data(dataset=dataset,data_status="processed")
 
 
 if __name__=="__main__":
 
-    for d in range (701,702):
-        first=10*d+1
-        last=10*(d+1)
-        preprocess_pipeline(first_index=first,last_index=last)
+    #for d in range (0,5):
+        #first=10*d+1
+        #last=10*(d+1)
+        #preprocess_pipeline(dataset="TYPOLOGIE_CLUSTER",first_index=first,last_index=last+1)
+
+    #preprocess_pipeline(dataset="TYPOLOGIE_CLUSTER",first_index=51,last_index=59)
+
+    download_data(dataset="TYPOLOGIE_CLUSTER",status="processed",first_index=1,last_index=10)

@@ -24,12 +24,14 @@ class Image_load(object):
         """
         h, w = img.size
         if h < self.size or w < self.size:
-            return img
+            #return img
+            return transforms.ToTensor()(img)
         else:
             return transforms.ToTensor()(transforms.Resize(self.size, self.interpolation)(img))
 
     def to_numpy(self, image):
         p = image.numpy()
+        #p=np.array(image)
         return p.transpose((1, 2, 0))
 
     def generate_patches(self, image, input_size, type=np.float32):
