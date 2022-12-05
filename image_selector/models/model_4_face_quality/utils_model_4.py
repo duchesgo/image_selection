@@ -6,7 +6,7 @@ print(Fore.BLUE + "\nLoading tensorflow..." + Style.RESET_ALL)
 
 from tensorflow.keras import Model, Sequential, layers
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow import convert_to_tensor, expand_dims
+#from tensorflow import convert_to_tensor, expand_dims
 
 print(f"\n✅ tensorflow loaded ")
 
@@ -25,18 +25,15 @@ def initialize_model_4() -> Model :
 
     model.add(layers.Conv2D(50, (2,2), activation="relu"))
     model.add(layers.MaxPool2D(pool_size=(2,2)))
-    model.add(layers.Dropout(0.3))
 
     model.add(layers.Conv2D(32, (2,2), activation="relu"))
     model.add(layers.MaxPool2D(pool_size=(2,2)))
-    model.add(layers.Dropout(0.3))
 
     model.add(layers.Conv2D(16, (2,2), activation="relu"))
     model.add(layers.MaxPool2D(pool_size=(2,2)))
-    model.add(layers.Dropout(0.3))
-
     model.add(layers.Flatten())
-    model.add(layers.Dense(64, activation = "relu"))
+
+    model.add(layers.Dropout(0.5))
     model.add(layers.Dense(4, activation = "softmax"))
 
     return model
