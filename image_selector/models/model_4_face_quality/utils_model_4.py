@@ -6,7 +6,7 @@ print(Fore.BLUE + "\nLoading tensorflow..." + Style.RESET_ALL)
 
 from tensorflow.keras import Model, Sequential, layers
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow import convert_to_tensor, expand_dims
+#from tensorflow import convert_to_tensor, expand_dims
 
 print(f"\n✅ tensorflow loaded ")
 

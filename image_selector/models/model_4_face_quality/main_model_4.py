@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 import os
 
-from utils_model_4 import initialize_model_4, compile_model_4, train_model_4, evaluate_model_4
-from preprocessor_model_4 import preprocess_model_4
-from get_training_data_CMU import get_data_folder_CMU
-from registry_model_4 import save_model_4, load_model_4
+
+from image_selector.models.model_4_face_quality.utils_model_4 import initialize_model_4, compile_model_4, train_model_4, evaluate_model_4
+from image_selector.models.model_4_face_quality.preprocessor_model_4 import preprocess_model_4
+from image_selector.models.model_4_face_quality.get_training_data_CMU import get_data_folder_CMU
+from image_selector.models.model_4_face_quality.registry_model_4 import save_model_4, load_model_4
 
 from tensorflow.keras.utils import to_categorical
-from tensorflow import expand_dims, convert_to_tensor
+from tensorflow import expand_dims #convert_to_tensor
 from tensorflow.keras import Model #TODO : voir si utile
 
 
@@ -110,40 +111,43 @@ def pred_model_4(dico):
 
     elif len(faces_list)==0: # Condition à faire sur le %age de la face
         print("No relevant face to analyse by model 4")
+        return dico
 
 
     #In the case of a simple portrait (only one face detected)
     elif len(faces_list)==1:
-        input_face = faces_list[0].get("face", "Review key names of input dictionnary")
+        input_face = faces_list[0].get("cropped_face", "Review key names of input dictionnary") #modif JB, changer face pour cropped_face
 
         if input_face == "Review key names of input dictionnary":
             print("MODEL 4 -> Review key names of input dictionnary")
 
+
+
         face_processed = preprocess_model_4(input_face) #à changer pour entrer np.array
-        y_pred_proba = model.predict(convert_to_tensor([face_processed]), verbose=0) #import à faire pour le .predict ?
+        y_pred_proba = model.predict(np.array([face_processed]), verbose=0) #import à faire pour le .predict ?
         associated_position_proba = {"straight_proba" :y_pred_proba[0][0],
                                         "up_proba" : y_pred_proba[0][1] ,
                                         "left_proba" : y_pred_proba[0][2],
                                         "right_proba" : y_pred_proba[0][3]}
 
         dico["cropped_faces"][0]["associated_position_proba"] = associated_position_proba
-        print("\n✅ prediction done for 1 face: ", dico)
+        #print("\n✅ prediction done for 1 face: ", dico)
         return dico
 
     #In the case of a group portrait (more than one face detected)
     elif len(faces_list)>1:
 
         for faces in faces_list :
-            input_face = faces.get("face", "Review key names of input dictionnary") #face=np.array
+            input_face = faces.get("cropped_face", "Review key names of input dictionnary") #face=np.array - modif JB, changer face pour cropped_face
             face_processed = preprocess_model_4(input_face) #à changer pour entrer np.array
-            y_pred_proba = model.predict(convert_to_tensor([face_processed]), verbose=0)
+            y_pred_proba = model.predict(np.array([face_processed]), verbose=0)
             associated_position_proba = {"straight_proba" :y_pred_proba[0][0],
                                         "up_proba" : y_pred_proba[0][1] ,
                                         "left_proba" : y_pred_proba[0][2],
                                         "right_proba" : y_pred_proba[0][3]}
             faces["associated_position_proba"] = associated_position_proba
 
-        print("\n✅ prediction done for more than 1 face: ", dico)
+        #print("\n✅ prediction done for more than 1 face: ", dico)
         return dico
 
 
