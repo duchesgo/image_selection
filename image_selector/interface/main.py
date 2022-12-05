@@ -79,5 +79,5 @@ if __name__=="__main__":
     surface_visage_min_in_image = 0.002  # Surface minimale d'un visage pour être recevable
     cascade_path_tp = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
 
-    scoring_pipeline(dataset="TYPOLOGIE_CLUSTER",data_status="processed",start=2,finish=5)
+    scoring_pipeline(dataset="SPAC",data_status="processed",start=2,finish=5)
     #scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=10)
