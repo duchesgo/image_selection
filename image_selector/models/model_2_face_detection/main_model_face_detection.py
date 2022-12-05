@@ -17,8 +17,8 @@ from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
 # xxxsss Variables à optimiser via GridSearch
 # xxxsss migrer en variables locales ou d'environnement ?
 scaleFactor_tp=1.1   # compense pour les visages plus ou moins proches de l'objectif
-minNeighbors_tp=5    # Nb de voisins pour reconnaître un objet ; pas clair
-minSize_tp=(30, 30)  # Taille de chaque fenêtre précédente ; pas clair
+minNeighbors_tp=3    # Nb de voisins pour reconnaître un objet ; pas clair
+minSize_tp=(23, 23)  # Taille de chaque fenêtre précédente ; pas clair
 min_face_surface_in_image_tp = 0.002  # Surface minimale d'un visage pour être recevable
 
 # FICHIERS IMAGES
@@ -67,11 +67,12 @@ def visualize_cropped_faces(image_dict, scaleFactor, minNeighbors, minSize, min_
         if index>=2:
             ax.set_title(f"surface relative {image_dict['cropped_faces'][index-2]['relative_face_surface']:.2%}")
 
-    fig.suptitle("Found {0} faces!".format(image_dict['nb_faces']))
+    fig.suptitle(f"Found {image_dict['nb_faces']} faces! \
+        with {scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}")
     # fig.show()
     fig.savefig(f"{scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}_{image_dict['image_name']}.jpg")
     # xsx créer un mkdir et sauver les photos à cet endroit
-
+    plt.close()
 
     return None
 
