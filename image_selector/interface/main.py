@@ -7,7 +7,8 @@ import numpy as np
 import cv2
 
 from image_selector.models.model_3_distortion_score.main_model_3_distortion_score import pred_model_3_distortion_score
-from image_selector.models.model_face_detection.main_model_face_detection_dev import face_detecting
+from image_selector.models.model_2_face_detection.main_model_face_detection import face_detecting
+from image_selector.models.model_4_face_quality.main_model_4 import pred_model_4
 
 def get_data_chunk(dataset="SPAC",data_status="processed",start=1,finish=10):
     """return chunk of data on format X_list,name_list, from image n°start to n°finish
@@ -56,14 +57,11 @@ def scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=8):
         master_dic["image_array"]=X_list[index]
         master_dic["image_name"]=name_list[index]
 
-        scaleFactor_tp=1.1   # compense pour les visages plus ou moins proches de l'objectif
-        minNeighbors_tp=5    # Nb de voisins pour reconnaître un objet ; pas clair
-        minSize_tp=(30, 30)  # Taille de chaque fenêtre précédente ; pas clair
-        cascade_path_tp = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
-
-        master_dic=face_detecting(master_dic=master_dic, cascade_path=cascade_path_tp, scaleFactor=scaleFactor_tp, minNeighbors=minNeighbors_tp, minSize=minSize_tp, visualize=False)
-
         master_dic=pred_model_3_distortion_score(master_dic)
+
+        master_dic=face_detecting(image_dict=master_dic, cascade_path=cascade_path_tp, scaleFactor=scaleFactor_tp, minNeighbors=minNeighbors_tp, minSize=minSize_tp, visualize=False,min_face_surface_in_image=surface_visage_min_in_image)
+
+        master_dic=pred_model_4(master_dic)
 
         dic_list.append(master_dic)
 
@@ -76,9 +74,10 @@ def scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=8):
 if __name__=="__main__":
 
     scaleFactor_tp=1.1   # compense pour les visages plus ou moins proches de l'objectif
-    minNeighbors_tp=5    # Nb de voisins pour reconnaître un objet ; pas clair
-    minSize_tp=(30, 30)  # Taille de chaque fenêtre précédente ; pas clair
-    surface_visage_min_in_image = 0.004  # Surface minimale d'un visage pour être recevable
+    minNeighbors_tp=3    # Nb de voisins pour reconnaître un objet ; pas clair
+    minSize_tp=(23, 23)  # Taille de chaque fenêtre précédente ; pas clair
+    surface_visage_min_in_image = 0.002  # Surface minimale d'un visage pour être recevable
     cascade_path_tp = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
-    scoring_pipeline(dataset="TYPOLOGIE_CLUSTER",data_status="processed",start=1,finish=10)
-    #scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=2)
+
+    scoring_pipeline(dataset="TYPOLOGIE_CLUSTER",data_status="processed",start=2,finish=5)
+    #scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=10)

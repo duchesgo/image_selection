@@ -170,11 +170,11 @@ def preprocess_pipeline(dataset="SPAC",first_index=1,last_index=15):
 
 if __name__=="__main__":
 
-    #for d in range (0,5):
-        #first=10*d+1
-        #last=10*(d+1)
-        #preprocess_pipeline(dataset="TYPOLOGIE_CLUSTER",first_index=first,last_index=last+1)
+    for d in range (0,50):
+        first=10*d+1
+        last=10*(d+1)
+        preprocess_pipeline(dataset="SPAC",first_index=first,last_index=last+1)
 
     #preprocess_pipeline(dataset="TYPOLOGIE_CLUSTER",first_index=51,last_index=59)
 
-    download_data(dataset="TYPOLOGIE_CLUSTER",status="processed",first_index=1,last_index=10)
+    #download_data(dataset="TYPOLOGIE_CLUSTER",status="processed",first_index=1,last_index=10)
