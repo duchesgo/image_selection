@@ -1,25 +1,23 @@
 ##############################################################
-# Fichier d'anayse des visages dans une image
+# Fichier d'anayse des visages dans une image via modèle OpenCV
 # input : une image
 # output : nb de visages, photo avec les visages, les visages et leur surface
 ##############################################################
 
 import pandas as pd
-import cv2
 import sys
 import os
 import matplotlib.pyplot as plt
+
+import time
+from time import gmtime, strftime
+
 from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
+import cv2
+from deepface import DeepFace
+from retinaface import RetinaFace
 
 
-
-# PARAMETRES
-# xxxsss Variables à optimiser via GridSearch
-# xxxsss migrer en variables locales ou d'environnement ?
-scaleFactor_tp=1.1   # compense pour les visages plus ou moins proches de l'objectif
-minNeighbors_tp=3    # Nb de voisins pour reconnaître un objet ; pas clair
-minSize_tp=(23, 23)  # Taille de chaque fenêtre précédente ; pas clair
-min_face_surface_in_image_tp = 0.002  # Surface minimale d'un visage pour être recevable
 
 # FICHIERS IMAGES
 # xxxsss comment pointer sur  l'image et le path
@@ -70,8 +68,13 @@ def visualize_cropped_faces(image_dict, scaleFactor, minNeighbors, minSize, min_
     fig.suptitle(f"Found {image_dict['nb_faces']} faces! \
         with {scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}")
     # fig.show()
-    fig.savefig(f"{scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}_{image_dict['image_name']}.jpg")
-    # xsx créer un mkdir et sauver les photos à cet endroit
+
+    path_draft = os.getcwd()
+    path_mkdir = f"{scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}"
+    path_full = os.path.join(path_draft, path_mkdir)
+
+    fig.savefig(os.path.join(path_full, \
+        f"{scaleFactor}_{minNeighbors}_{minSize}_{min_face_surface_in_image}_{image_dict['image_name']}.jpg"))
     plt.close()
 
     return None
@@ -79,7 +82,7 @@ def visualize_cropped_faces(image_dict, scaleFactor, minNeighbors, minSize, min_
 
 def face_detecting(image_dict, cascade_path, scaleFactor, minNeighbors, minSize,\
     min_face_surface_in_image, visualize=False):
-    # Fonction de détection de visages dans une image
+    # Fonction de détection de visages dans une image via OpenCV
     # Input : une image (type jpg, png...)
     # Output : dictionnaire contenant
     #     nb de visages ;
@@ -118,6 +121,11 @@ def face_detecting(image_dict, cascade_path, scaleFactor, minNeighbors, minSize,
     image_dict['image_with_faces'] = image_with_faces
 
     if visualize:
+        path_draft = os.getcwd()
+        path_mkdir = f"{scaleFactor_tp}_{minNeighbors_tp}_{minSize_tp}_{min_face_surface_in_image_tp}"
+        path_full = os.path.join(path_draft, path_mkdir)
+        if not os.path.exists(path_full):
+            os.mkdir(path_full)
         visualize_cropped_faces(image_dict, scaleFactor, minNeighbors, minSize, min_face_surface_in_image)
 
     return image_dict
