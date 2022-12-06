@@ -1,14 +1,14 @@
 ##############################################################
-# Fichier d'anayse des visages dans une image
+# Fichier d'anayse des visages dans une image via modèle OpenCV
 # input : une image
 # output : nb de visages, photo avec les visages, les visages et leur surface
 ##############################################################
 
 import pandas as pd
-import cv2
 import sys
 import os
 import matplotlib.pyplot as plt
+import cv2
 from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
 
 
@@ -118,6 +118,11 @@ def face_detecting(image_dict, cascade_path, scaleFactor, minNeighbors, minSize,
     image_dict['image_with_faces'] = image_with_faces
 
     if visualize:
+        path_draft = os.getcwd()
+        path_mkdir = f"{scaleFactor_tp}_{minNeighbors_tp}_{minSize_tp}_{min_face_surface_in_image_tp}"
+        path_full = os.path.join(path_draft, path_mkdir)
+        if not os.path.exists(path_full):
+            os.mkdir(path_full)
         visualize_cropped_faces(image_dict, scaleFactor, minNeighbors, minSize, min_face_surface_in_image)
 
     return image_dict
