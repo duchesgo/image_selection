@@ -60,7 +60,7 @@ def pca(features):
 
 ### CLUSTERING
 
-def clustering(pca_features):
+def clustering(pca_features,distance=20):
     '''This fonction return a dictionnary an idex-img -key- and if they are part of a cluster (number) or not (0) -value-'''
 
     # get the number of images in the dataset
@@ -85,7 +85,7 @@ def clustering(pca_features):
                 continue
             if dict_clusters[v] != 0:
                 continue
-            if np.linalg.norm(pca_features[h]-pca_features[v]) < 20:
+            if np.linalg.norm(pca_features[h]-pca_features[v]) < distance:
                 cluster_found = True
                 dict_clusters[h] = nb_clusters + 1
                 dict_clusters[v] = nb_clusters + 1
