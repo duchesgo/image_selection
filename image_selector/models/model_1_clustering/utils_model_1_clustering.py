@@ -1,14 +1,19 @@
 import numpy as np
 # for preproccess X
-from preprocessor_model_1_clustering import resize_X_clustering, input_X_clustering
+
+from image_selector.models.model_1_clustering.preprocessor_model_1_clustering import resize_X_clustering, input_X_clustering
 # for the VGG model
+
 from keras.applications.vgg16 import VGG16
+
 from keras.models import Model
 # for dimension reduction
+
 from sklearn.decomposition import PCA
 
 # -----SUPPRIMER -----
-from getdata_model_1_clustering import img_to_ndarray
+print("img_to_ndarray")
+#from image_selector.models.model_1_clustering.getdata_model_1_clustering import img_to_ndarray
 
 
 ### PREPROCESSED IMAGES
@@ -24,9 +29,9 @@ def preprocessed_X_clustering(X_list):
 
 # -----SUPPRIMER -----
 # load model
-model = VGG16()
+#model = VGG16()
 # remove the output layer
-model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
+#model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
 
 def extract_features(X_preprocessed, model):
     '''The fonction returns a ndarray of features, using the model VGG16 as a feature extractor'''

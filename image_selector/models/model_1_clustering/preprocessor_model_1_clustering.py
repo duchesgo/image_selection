@@ -1,9 +1,11 @@
 import numpy as np
+
 from tensorflow import image
+
 from keras.applications.vgg16 import preprocess_input
 
 # -----SUPPRIMER -----
-from getdata_model_1_clustering import img_to_ndarray, bmp_to_ndarray, jpg_to_ndarray
+#from image_selector.models.model_1_clustering.getdata_model_1_clustering import img_to_ndarray, bmp_to_ndarray, jpg_to_ndarray
 
 
 def resize_X_clustering(X_list):
