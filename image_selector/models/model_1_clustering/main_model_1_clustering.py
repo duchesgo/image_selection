@@ -1,5 +1,5 @@
 from getdata_model_1_clustering import img_to_ndarray
-from utils_model_1_clustering import preprocessed_X_clustering, extract_features, pca, clustering, dict_clustering
+from image_selector.models.model_1_clustering.utils_model_1_clustering import preprocessed_X_clustering, extract_features, pca, clustering, dict_clustering
 # for the VGG model
 from keras.applications.vgg16 import VGG16
 from keras.models import Model
@@ -8,12 +8,16 @@ from keras.models import Model
 def model_clustering(X_path):
     # Load X images and transform images into ndarray
     X, list_names = img_to_ndarray(X_path)
+
+
     # Preprocessed X
     X_preprocessed = preprocessed_X_clustering(X)
     # Model VGG16 : load, remove the output layer and extract features
     model = VGG16()
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
     features = extract_features(X_preprocessed, model)
+
+
     # Reduce dimension features (pca)
     pca_features = pca(features)
     # Find cluster
