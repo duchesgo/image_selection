@@ -7,8 +7,8 @@ from keras.models import Model
 # for dimension reduction
 from sklearn.decomposition import PCA
 
-from getdata_model_1_clustering import img_to_ndarray
-from utils_model_1_clustering import preprocessed_X_clustering, extract_features
+from image_selector.models.model_1_clustering.getdata_model_1_clustering import img_to_ndarray
+from image_selector.models.model_1_clustering.utils_model_1_clustering import preprocessed_X_clustering, extract_features
 
 ### DIMENSIONALITY REDUCTION - PCA
 
@@ -56,7 +56,7 @@ def clustering(pca_features):
                 continue
             if dict_clusters[v] != 0:
                 continue
-            if np.linalg.norm(pca_features[h]-pca_features[v]) < 5:
+            if np.linalg.norm(pca_features[h]-pca_features[v]) < 10:
                 cluster_found = True
                 dict_clusters[h] = nb_clusters + 1
                 dict_clusters[v] = nb_clusters + 1
@@ -91,11 +91,11 @@ def model_clustering(X_path):
 
 if __name__=='__main__':
     print('*** Sart test: main_model1_clustering ***')
-    X_path = "/home/celinethomas/code/duchesgo/image_selection/draft/data/selection5/paysage/paysage1/"
+    X_path = "/home/celinethomas/code/duchesgo/image_selection/draft/data/selection5/autres/autres1/"
     nb_clusters, result_clusters = model_clustering(X_path)
     print(f'Clusters number: {nb_clusters}')
     print(f'Clusters dict final: {result_clusters}')
     df_clusters = pd.DataFrame(list(result_clusters.items()),
                    columns=['photo_id', 'clusters']).reset_index()
-    df_clusters.to_csv('/home/celinethomas/code/duchesgo/image_selection/draft/data/selection5/paysage/paysage1_5.csv')
+    df_clusters.to_csv('/home/celinethomas/code/duchesgo/image_selection/draft/data/selection5/autres/autres1_10.csv')
     print('*** End test: main_model1_clustering ***')
