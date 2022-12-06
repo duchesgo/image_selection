@@ -62,7 +62,7 @@ def return_score_torch(image):
 	model.to(DEVICE)
 	model.eval()
 
-	checkpoint = torch.load(WEIGHT_PATH, map_location='cuda:0')
+	checkpoint = torch.load(WEIGHT_PATH, map_location=DEVICE)
 	model.load_state_dict(checkpoint['state_dict'])
 
 	#model = update_model(model)
