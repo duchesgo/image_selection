@@ -1,6 +1,5 @@
 from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow import convert_to_tensor
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,7 +7,6 @@ import pandas as pd
 import os
 from google.cloud import storage
 from tensorflow.image import resize_with_pad
-from tensorflow.image import resize
 from tensorflow import cast
 
 target_path=os.environ.get("SPAC_TARGET_PATH")
@@ -170,10 +168,10 @@ def preprocess_pipeline(dataset="SPAC",first_index=1,last_index=15):
 
 if __name__=="__main__":
 
-    for d in range (0,50):
+    for d in range (0,42):
         first=10*d+1
         last=10*(d+1)
-        preprocess_pipeline(dataset="SPAC",first_index=first,last_index=last+1)
+        preprocess_pipeline(dataset="DATA_TEST",first_index=first,last_index=last+1)
 
     #preprocess_pipeline(dataset="TYPOLOGIE_CLUSTER",first_index=51,last_index=59)
 
