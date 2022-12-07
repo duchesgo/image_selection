@@ -2,7 +2,7 @@ import cv2
 import os
 
 eye_cascPath = os.path.join(os.environ.get("LOCAL_PROJECT_PATH"),"registry","eye_cascade")
-eyeCascade = cv2.CascadeClassifier(eye_cascPath)
+eyeCascade = cv2.CascadeClassifier(eye_cascPath+"/"+"haarcascade_eye_tuned.xml")
 
 
 def eyes_detector(image):
@@ -24,7 +24,6 @@ def pred_eyes(dico):
 
     # Getting list of dictionnaries / 1 dictionnary = 1 face + information
     faces_list = dico.get("cropped_faces", "No such key as 'cropped_faces'")
-
 
     if faces_list == "No such key as 'cropped_faces'":
         print("Wrong input for model 4")
@@ -54,7 +53,7 @@ def pred_eyes(dico):
         for face in faces_list :
             input_face = face.get("cropped_face", "Review key names of input dictionnary") #face=np.array - modif JB, changer face pour cropped_face
             nb_eyes = eyes_detector(input_face)
-            face["associated_position_proba"] = nb_eyes
+            face["nb_eyes"] = nb_eyes
 
         #print("\n✅ prediction done for more than 1 face: ", dico)
         return dico
