@@ -9,59 +9,23 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-from time import gmtime, strftime
-
 import cv2
 from deepface import DeepFace
 from retinaface import RetinaFace
+
+from image_selector.models.model_2_face_detection.utils_model_2 import visualize_cropped_faces
 
 
 # FICHIERS IMAGES - Variables temporaires pour tester la fct dans if name = main
 image_name_tp = 'abba.png'
 # image_name_tp = '2021 06 19 - 202339 - Etretat.jpg'
 
-image_path_tp = '../../../draft/images_test'
+image_path_tp = 'draft/images_test'
 image_dict_tp = {'image_name': image_name_tp,
                  'image_array': cv2.imread(os.path.join(image_path_tp, image_name_tp))}
 
 
-
-def visualize_cropped_faces(image_dict):
-    # Fonction qui imprime un fichier contenant
-    #    l'image d'origine
-    #    l'image avec les cadres autour des visages
-    #    la photo de tous les visages identifiés
-
-    list_faces_cropped =[]
-    list_faces_cropped.append(image_dict['image_array'])
-    list_faces_cropped.append(image_dict['image_with_faces'])
-
-    for i in range(len(image_dict['cropped_faces'])):
-        list_faces_cropped.append(image_dict['cropped_faces'][i]['cropped_face'])
-
-    fig, axes = plt.subplots(nrows=4,ncols=4,figsize=(15,10))
-
-    for index, (image, ax) in enumerate(zip(list_faces_cropped, axes.flat)):
-        ax.imshow(image)
-        if index>=2:
-            ax.set_title(f"surface relative {image_dict['cropped_faces'][index-2]['relative_face_surface']:.2%}")
-
-    fig.suptitle(f"Found {image_dict['nb_faces']} faces!")
-    # fig.show()
-
-    path_draft = os.getcwd()
-    path_mkdir = f"DeepFace"
-    path_full = os.path.join(path_draft, path_mkdir)
-
-    fig.savefig(os.path.join(path_full, f"DeepFace_{image_dict['image_name']}.jpg"))
-
-    plt.close()
-
-    return None
-
-
-
-
+# ----- M
 # metrics pour les fonctions .find() et .verify()
 # distance_metric = metrics[1]
 metrics = ["cosine", "euclidean", "euclidean_l2"]    # Il semble qu'il faille préférer metrics[2]
