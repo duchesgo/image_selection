@@ -13,9 +13,11 @@ import cv2
 import re
 import pickle
 from image_selector.models.model_3_distortion_score.main_model_3_distortion_score import pred_model_3_distortion_score
-from image_selector.models.model_2_face_detection.main_model_face_detection import face_detecting
+from image_selector.models.model_2_face_detection.main_model_face_detection_deepface import face_detecting_DeepFace
 from image_selector.models.model_4_face_quality.main_model_4 import pred_model_4
+from image_selector.models.model_4_face_quality.main_eyes_detection import pred_eyes
 from image_selector.models.model_1_clustering.utils_model_1_clustering import preprocessed_X_clustering, extract_features, pca, clustering, dict_clustering
+from image_selector.models.sorting_rules.main_sorting_rules import sorting_img
 
 from image_selector.preprocessing.preprocess_raw_data import download_data
 
@@ -103,6 +105,7 @@ def download_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status=
     spac_bucket_path=f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/"
     file_storage=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data"
 
+
     storage_client = storage.Client(project_name)
     bucket = storage_client.get_bucket(bucket_name)
     blobs=list(bucket.list_blobs(prefix=spac_bucket_path))
@@ -124,7 +127,7 @@ def open_dict_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status
 
     return dict_image
 
-def get_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status="categorized_dict",first_index=1,last_index=10):
+def get_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status="categorized_dict",first_index=None,last_index=None):
     """This function return a list of dic_image from the hardrive"""
 
     folder_path=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data/" + f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/"
@@ -140,9 +143,10 @@ def get_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status="cate
         first_index=0
 
     if last_index==None:
-        last_index=len(name_list)
+        last_index=len(name_list)+1
 
     for img in name_list[first_index:last_index]:
+
         X=open_dict_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status,image_name=img)
         img_dic_list.append(X)
 
@@ -182,6 +186,13 @@ def save_cluster_dic(dict_cluster,data_status="extracted_features",dataset="TYPO
     pickle.dump(dict_cluster,storing_file)
     storing_file.close()
 
+def save_sorting_list(sorting_list,data_status="extracted_features",dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",quality_sorting="good"):
+    storing_file_path=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data/" + f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/{quality_sorting.upper()}/"
+    cluster_path=storing_file_path+dataset+"_"+sub_dataset+"_"+quality_sorting+".pickle"
+    storing_file=open(cluster_path,"wb")
+    pickle.dump(sorting_list,storing_file)
+    storing_file.close()
+
 def scoring_chunk(dataset="SPAC",data_status="processed",start=1,finish=8):
 
     scaleFactor_tp=1.1   # compense pour les visages plus ou moins proches de l'objectif
@@ -206,9 +217,9 @@ def scoring_chunk(dataset="SPAC",data_status="processed",start=1,finish=8):
 
         master_dic=pred_model_3_distortion_score(master_dic)
 
-        master_dic=face_detecting(image_dict=master_dic, cascade_path=cascade_path_tp, scaleFactor=scaleFactor_tp, minNeighbors=minNeighbors_tp, minSize=minSize_tp, visualize=False,min_face_surface_in_image=surface_visage_min_in_image)
+        master_dic=face_detecting_DeepFace(image_dict=master_dic,visualize=False)
 
-        master_dic=pred_model_4(master_dic)
+        master_dic=pred_eyes(master_dic)
 
         dic_list.append(master_dic)
 
@@ -237,20 +248,32 @@ def scoring_chunk(dataset="SPAC",data_status="processed",start=1,finish=8):
 def creating_light_dic_chunk(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status="categorized_dict",first_index=1,last_index=10,cluster_dic={}):
 
     #Downloading the dic_image for the chunk
+
     download_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status,first_index=first_index,last_index=last_index)
 
     img_dic_list,name_list=get_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status)
+
+    #cleaning the pickle each time
+    clean_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status)
 
     light_img_dic_list=[]
 
     #creating a list of new image_dic, with only the data usefull for the sorting rules
 
     for img_dic in img_dic_list:
-        light_dic=[]
+        light_dic={}
 
         for key in ["image_name","nb_faces","MOS"]:
             light_dic[key]=img_dic[key]
-        light_dic["cluster"]=cluster_dic[img_dic["image_name"]]
+        light_dic["cropped_faces"]=[]
+
+        for faces in img_dic["cropped_faces"]:
+
+            light_dic_faces={"emotion":faces["emotion"],
+                             "nb_eyes":faces["nb_eyes"]}
+            light_dic["cropped_faces"].append(light_dic_faces)
+
+        light_dic["cluster"]=cluster_dic[img_dic["image_name"]+".pickle"]
 
         light_img_dic_list.append(light_dic)
 
@@ -273,14 +296,42 @@ def creating_light_dic_global(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",da
     light_img_dic_list_global=[]
 
     for chunk in range (nb_chunk):
+        print(f"chunk {chunk+1} in {nb_chunk}")
         first_index=(chunk*chunk_size)+1
         last_index=((chunk+1)*chunk_size)+1
 
         ligh_img_dic=creating_light_dic_chunk(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status,first_index=first_index,last_index=last_index,cluster_dic=cluster_dic)
 
-        light_img_dic_list_global.append(ligh_img_dic)
+        light_img_dic_list_global += ligh_img_dic
 
     return light_img_dic_list_global
+
+def upload_output_data(dataset="SPAC",data_status="output",sub_dataset="GROUP",quality="good"):
+    project_name="le-wagon-image-selection"
+    bucket_name="image_selection"
+    PROCESSED_LOCAL_PATH=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data/" + f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/{quality.upper()}/"
+    PROCCESSED_SPAC_BUCKET_PATH=f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/{quality.upper()}/"
+    storage_client = storage.Client(project_name)
+    bucket = storage_client.get_bucket(bucket_name)
+    upload_img_list=os.listdir(PROCESSED_LOCAL_PATH)
+
+    for img in upload_img_list:
+        blob=bucket.blob(PROCCESSED_SPAC_BUCKET_PATH+img)
+        blob.upload_from_filename(PROCESSED_LOCAL_PATH+img)
+
+    return None
+
+def clean_output_data(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",data_status="output",quality="GOOD"):
+
+    folder_path=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data/" + f"data_{data_status.lower()}/{dataset.upper()}/{sub_dataset.upper()}/{quality.upper()}/"
+
+    img_list=os.listdir(folder_path)
+
+    for img in img_list:
+        filepath=folder_path+img
+        os.remove(filepath)
+
+    return None
 
 def transfering_raw_image(dataset="TYPOLOGIE_CLUSTER",dict_of_target={},start=1,finish=10):
 
@@ -298,14 +349,15 @@ def transfering_raw_image(dataset="TYPOLOGIE_CLUSTER",dict_of_target={},start=1,
         raw_image=Image.open(image_path)
         category=dict_of_target[img]["category"]
         quality=dict_of_target[img]["quality"]
-        if dict_of_target[img]=="delete":
-            quality="RUBBISH"
-        elif dict_of_target[img]=="save":
-            quality="GOOD"
-        elif dict_of_target[img]=="bestof":
-            quality="EXCELLENT"
         destination_path=os.environ.get("LOCAL_PROJECT_PATH")+ "local_data/" + f"data_output/{dataset.upper()}/{category.upper()}/{quality.upper()}/"+img
         raw_image.save(destination_path)
+
+    for sub_dataset in ["GROUP","PORTRAIT","LANDSCAPE"]:
+        for quality_loop in ["GOOD","EXCELLENT","RUBBISH"]:
+            upload_output_data(dataset=dataset,data_status="output",sub_dataset=sub_dataset,quality=quality_loop)
+            clean_output_data(dataset=dataset,sub_dataset=sub_dataset,data_status="output",quality=quality_loop)
+
+
 
 
 """-----------------------------------------pipeline--------------------------------------------------------------------"""
@@ -358,7 +410,9 @@ def clustering_pipeline(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",start=1,
 
     print("reducing dimension, PCA")
 
-    dataset_features,list_names=get_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status="extracted_features",first_index=1,last_index=None)
+    dataset_features,list_names=get_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status="extracted_features",first_index=None,last_index=None)
+
+    print(len(dataset_features))
 
     pca_features = pca(dataset_features)
 
@@ -392,6 +446,10 @@ def clustering_pipeline(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",start=1,
 
     upload_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status="extracted_features")
 
+    #cleaning local pickle
+
+    clean_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status="extracted_features")
+
 def scoring_pipeline(dataset="SPAC",data_status="processed",start=1,finish=20,chunk_size=10):
 
     nb_chunk=math.ceil(finish/chunk_size)
@@ -408,36 +466,92 @@ def sorting_rules_pipeline(dataset="TYPOLOGIE_CLUSTER"):
 
     #creating the list of light dic_image, with cluster information
 
+    print("downloading GROUP DATA")
+
     light_img_GROUP=creating_light_dic_global(dataset=dataset,sub_dataset="GROUP",data_status="categorized_dict",start=1,finish=60,chunk_size=10)
+    print(f"length of light_img_group = {len(light_img_GROUP)}")
+    print("downloading PORTRAIT DATA")
 
     light_img_PORTRAIT=creating_light_dic_global(dataset=dataset,sub_dataset="PORTRAIT",data_status="categorized_dict",start=1,finish=60,chunk_size=10)
+    print(f"length of light_img_portrait = {len(light_img_PORTRAIT)}")
+    print("downloading LANDSCAPE DATA")
 
     light_img_LANDSCAPE=creating_light_dic_global(dataset=dataset,sub_dataset="LANDSCAPE",data_status="categorized_dict",start=1,finish=60,chunk_size=10)
-
+    print(f"length of light_img_landscape = {len(light_img_LANDSCAPE)}")
     #creating the master_dict, it will unite all the other dict in darkness, and bind them with the following keys : "name", value {"category":,"quality":}
 
     master_dict={}
 
     for img_dict in light_img_GROUP:
 
-        master_dict[img_dict["image_name"]]={"category":"GROUP"}
+        master_dict[img_dict["image_name"]]={"category":"GROUP","nb_faces": img_dict["nb_faces"],"MOS": img_dict["MOS"],"cropped_faces":img_dict["cropped_faces"]}
 
     for img_dict in light_img_PORTRAIT:
 
-        master_dict[img_dict["image_name"]]={"category":"PORTRAIT"}
+        master_dict[img_dict["image_name"]]={"category":"PORTRAIT","nb_faces": img_dict["nb_faces"],"MOS": img_dict["MOS"],"cropped_faces":img_dict["cropped_faces"]}
 
     for img_dict in light_img_LANDSCAPE:
 
-        master_dict[img_dict["image_name"]]={"category":"LANDSCAPE"}
+        master_dict[img_dict["image_name"]]={"category":"LANDSCAPE","nb_faces": img_dict["nb_faces"],"MOS": img_dict["MOS"],"cropped_faces":img_dict["cropped_faces"]}
 
     # apllying sorting function to the light dict, getting in return the bestof/save/delet list and adding the quality info on the master dict
 
+    GROUP_excellent_list,GROUP_good_list,GROUP_rubbish_list=sorting_img(light_img_GROUP)
+
+    PORTRAIT_excellent_list,PORTRAIT_good_list,PORTRAIT_rubbish_list=sorting_img(light_img_PORTRAIT)
+
+    LANDSCAPE_excellent_list,LANDSCAPE_good_list,LANDSCAPE_rubbish_list=sorting_img(light_img_LANDSCAPE)
+
+    # Adding information on master_dic
+
+    """for sub_dataset in ["PORTRAIT","GROUP","LANDSCAPE"]:
+        for data_status in ["output"]:
+            for quality_sorting in ["excellent","good","rubbish"]:
+                name_of_list=sub_dataset+"_"+ quality_sorting +"_"+"list"
+                save_sorting_list(sorting_list=eval(name_of_list),data_status=data_status,dataset=dataset,sub_dataset=sub_dataset,quality_sorting=quality_sorting)
+    """
+
+    for img_name in master_dict:
+        if master_dict[img_name]["category"]=="GROUP":
+            if img_name in GROUP_excellent_list:
+                master_dict[img_name]["quality"]="excellent"
+            elif img_name in GROUP_good_list:
+                master_dict[img_name]["quality"]="good"
+            elif img_name in GROUP_rubbish_list:
+                master_dict[img_name]["quality"]="rubbish"
+        elif master_dict[img_name]["category"]=="PORTRAIT":
+            if img_name in PORTRAIT_excellent_list:
+                master_dict[img_name]["quality"]="excellent"
+            elif img_name in PORTRAIT_good_list:
+                master_dict[img_name]["quality"]="good"
+            elif img_name in PORTRAIT_rubbish_list:
+                master_dict[img_name]["quality"]="rubbish"
+        elif master_dict[img_name]["category"]=="LANDSCAPE":
+            if img_name in LANDSCAPE_excellent_list:
+                master_dict[img_name]["quality"]="excellent"
+            elif img_name in LANDSCAPE_good_list:
+                master_dict[img_name]["quality"]="good"
+            elif img_name in LANDSCAPE_rubbish_list:
+                master_dict[img_name]["quality"]="rubbish"
 
 
-    # storing the master dict as well as the light_image dict on local hard-drive to analysis
+    # storing master dict on local hard-drive to analysis
+
+    save_cluster_dic(dict_cluster=master_dict,data_status="output",dataset=dataset,sub_dataset="MASTER_DIC")
+
+    #cleaning all the pickles
+
+    for sub_dataset in ["PORTRAIT","GROUP","LANDSCAPE"]:
+        for data_status in ["categorized_dict","extracted_features"]:
+            clean_pickle(dataset=dataset,sub_dataset=sub_dataset,data_status=data_status)
+
+    #transfering raw image on output
+
+    print("downloading and sorting raw image")
+
+    transfering_raw_image(dataset=dataset,dict_of_target=master_dict,start=1,finish=20)
 
 
-    pass
 
 
 
@@ -447,11 +561,19 @@ def sorting_rules_pipeline(dataset="TYPOLOGIE_CLUSTER"):
 
 if __name__=="__main__":
 
-    #scoring_pipeline(dataset="TYPOLOGIE_CLUSTER",start=1,finish=60,chunk_size=10)
+    dataset="TYPOLOGIE_CLUSTER"
+
+    scoring_pipeline(dataset=dataset,start=1,finish=60,chunk_size=10)
 
     print("---------------------clustering portrait-------------------------------")
-    clustering_pipeline(dataset="TYPOLOGIE_CLUSTER",sub_dataset="PORTRAIT",start=1,finish=60,chunk_size=10)
+    clustering_pipeline(dataset=dataset,sub_dataset="PORTRAIT",start=1,finish=60,chunk_size=10)
     print("---------------------clustering landscape-------------------------------")
-    clustering_pipeline(dataset="TYPOLOGIE_CLUSTER",sub_dataset="LANDSCAPE",start=1,finish=60,chunk_size=10)
+    clustering_pipeline(dataset=dataset,sub_dataset="LANDSCAPE",start=1,finish=60,chunk_size=10)
     print("---------------------clustering group-------------------------------")
-    clustering_pipeline(dataset="TYPOLOGIE_CLUSTER",sub_dataset="GROUP",start=1,finish=60,chunk_size=10)
+    clustering_pipeline(dataset=dataset,sub_dataset="GROUP",start=1,finish=60,chunk_size=10)
+
+    #sorting_rules_pipeline(dataset=dataset)
+
+    #for sub_dataset in ["PORTRAIT","GROUP","LANDSCAPE"]:
+    #    for data_status in ["categorized_dict","extracted_features"]:
+    #        clean_pickle(dataset="TYPOLOGIE_CLUSTER",sub_dataset=sub_dataset,data_status=data_status)
