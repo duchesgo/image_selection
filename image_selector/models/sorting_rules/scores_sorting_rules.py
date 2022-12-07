@@ -1,72 +1,72 @@
 import numpy as np
 
+
 def emotion_score(list_dict_img):
+    """The function"""
     for img in list_dict_img:
         emotion_list_score = list()
-
-        if img["nb_faces"] != 0:
-            for emotion in img["cropped_faces"]:
-                # si 'happy' ou 'surprise' => note de 1,2
-                if emotion["emotion"] in ["happy", "surprise"]:
-                    emotion_list_score.append(1.2)
-                # si 'neutral' => note de 1
-                elif emotion["emotion"] == 'neutral':
-                    emotion_list_score.append(1.0)
-                # si 'angry', 'disgust', 'fear', 'sad' => note 0.8
-                else:
-                    emotion_list_score.append(0.8)
-            em_score = sum(emotion_list_score)/img["nb_faces"]
-            img["score_emotion"] = em_score
+        for emotion in img["cropped_faces"]:
+            # si 'happy' ou 'surprise' => note de 1,2
+            if emotion["emotion"] in ["happy", "surprise"]:
+                emotion_list_score.append(1.2)
+            # si 'neutral' => note de 1
+            elif emotion["emotion"] == 'neutral':
+                emotion_list_score.append(1.0)
+            # si 'angry', 'disgust', 'fear', 'sad' => note 0.8
+            else:
+                emotion_list_score.append(0.8)
+        em_score = sum(emotion_list_score)/img["nb_faces"]
+        img["score_emotion"] = em_score
     return list_dict_img
+
 
 
 def eyes_score(list_dict_img):
+    """The function"""
     for img in list_dict_img:
         eyes_list_score = list()
-
-        if img["nb_faces"] != 0:
-            for eyes in img["cropped_faces"]:
-                eyes_list_score.append(eyes["nb_eyes"])
-            score_eyes = sum(eyes_list_score)/img["nb_faces"]
-            img["score_eyes"] = score_eyes
+        for eyes in img["cropped_faces"]:
+            # si 2 yeux => note de 1,1
+            if eyes["nb_eyes"] == 2:
+                eyes_list_score.append(1.1)
+            # si 1 oeil => note de 0,9
+            elif eyes["nb_eyes"] == 0:
+                eyes_list_score.append(0.8)
+            # si 0 => note de 0,8
+            else:
+                eyes_list_score.append(0.9)
+        sc_eyes = sum(eyes_list_score)/img["nb_faces"]
+        img["score_eyes"] = sc_eyes
     return list_dict_img
 
 
-# def score_mos(list_dict_image):
-#     for img in list_dict_image:
-#         img["score_mos"] = img["MOS"]
-#     return list_dict_image
-
 
 def standardize_score(list_dict_img, score_clé):
+    """The function"""
     score_list = [img[score_clé] for img in list_dict_img if score_clé in img]
     score_mean = sum(score_list)/len(score_list)
     score_calcul = [(s - score_mean) for s in score_list]
     sum_minmax = abs(np.min(score_calcul)) + abs(np.max(score_calcul))
-
     # Calculer le MOS standardizer et le remplacer dans le dictionnaire
     for img in list_dict_img:
         if score_clé in img :
             score_standardize = ((img[score_clé]-score_mean)/sum_minmax) + 1
             img[score_clé] = score_standardize
-
     return list_dict_img
+
 
 
 def final_score(list_dict_img, k1=1, k2=1, k3=1):
+    """The function"""
     for img in list_dict_img:
         scores = list()
         scores.append(img["MOS"])
-        if img["nb_faces"] != 0:
-            scores.append(img["score_emotion"])
-            scores.append(img["score_eyes"])
-        if len(scores) == 3:
-            score_final = (scores[0]**k1) * (scores[1]**k2) * (scores[2]**k3)
-            img["final_score"] = score_final
-        else:
-            score_final = scores[0]
-            img["final_score"] = score_final
+        scores.append(img["score_emotion"])
+        scores.append(img["score_eyes"])
+        score_final = (scores[0]**k1) * (scores[1]**k2) * (scores[2]**k3)
+        img["final_score"] = score_final
     return list_dict_img
+
 
 
 def calculating_scores(list_dict_img):

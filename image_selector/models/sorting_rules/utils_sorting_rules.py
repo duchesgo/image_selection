@@ -1,12 +1,10 @@
 def cluster_list(list_dict_img, number_cluster):
     """Function that returns a list of image dictionnary from the same cluster,
     given a list of image dictionnary and the number of the cluster """
-
     cluster_list = list()
     for img in list_dict_img:
         if img["cluster"] == number_cluster:
             cluster_list.append(img)
-
     return cluster_list
 
 
@@ -16,7 +14,6 @@ def sorting_cluster(cluster_list, number, scores):
     1- list of names of the images to save (best mos scores),
     2- list of names of the images to delete
     given a cluster (format: list of image dictionary) and the number of best images to return"""
-
     list_scores = [img[scores] for img in cluster_list]
     if number == 1:
         max_scores = max(list_scores)
@@ -27,7 +24,6 @@ def sorting_cluster(cluster_list, number, scores):
         max_scores = list_scores[:number]
         good_img = [img["image_name"] for img in cluster_list if img[scores] in max_scores]
         rubbish_img = [img["image_name"] for img in cluster_list if img[scores] not in max_scores]
-
     return good_img, rubbish_img
 
 
@@ -41,7 +37,6 @@ def sorting_without_cluster_landscape(cluster_list):
     excellent_img = list()
     good_img = list()
     rubbish_img = list()
-
     for img in cluster_list:
             if img['MOS'] < 60:
                 rubbish_img.append(img['image_name'])
@@ -49,7 +44,6 @@ def sorting_without_cluster_landscape(cluster_list):
                 good_img.append(img['image_name'])
             else:
                 excellent_img.append(img['image_name'])
-
     return excellent_img, good_img, rubbish_img
 
 
