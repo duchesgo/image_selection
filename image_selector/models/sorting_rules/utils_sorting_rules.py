@@ -3,54 +3,69 @@ def cluster_list(list_dict_img, number_cluster):
     given a list of image dictionnary and the number of the cluster """
 
     cluster_list = list()
-    for image in list_dict_img:
-        if image["cluster"] == number_cluster:
-            cluster_list.append(image)
+    for img in list_dict_img:
+        if img["cluster"] == number_cluster:
+            cluster_list.append(img)
 
     return cluster_list
 
 
-def sorting_without_cluster(cluster_list):
-    """Function that returns 3 lists :
-    1- list of names of the BEST images to save (mos scores >= 70),
-    1- list of names of the  images to save (60 <= mos scores < 70),
-    2- list of names of the images to delete (mos score < 60)
-    given a list of image dictionary"""
-    delete_img = list()
-    save_img = list()
-    bestof_img = list()
 
-    for image in cluster_list:
-
-            if image['MOS'] < 60:
-                delete_img.append(image['image_name'])
-            elif image['MOS'] >= 60 and image['MOS'] < 70 :
-                save_img.append(image['image_name'])
-            else:
-                bestof_img.append(image['image_name'])
-
-    return bestof_img, save_img, delete_img
-
-
-
-def sorting_cluster(cluster_list, number):
+def sorting_cluster(cluster_list, number, scores):
     """Function that returns 2 lists :
     1- list of names of the images to save (best mos scores),
     2- list of names of the images to delete
     given a cluster (format: list of image dictionary) and the number of best images to return"""
 
-    list_mos = [image["MOS"] for image in cluster_list]
+    list_scores = [img[scores] for img in cluster_list]
     if number == 1:
-        max_mos = max(list_mos)
-        good_img = [img["image_name"] for img in cluster_list if img['MOS'] == max_mos]
-        rubbish_img = [img["image_name"] for img in cluster_list if img['MOS'] != max_mos]
+        max_scores = max(list_scores)
+        good_img = [img["image_name"] for img in cluster_list if img[scores] == max_scores]
+        rubbish_img = [img["image_name"] for img in cluster_list if img[scores] != max_scores]
     else:
-        list_mos.sort(reverse = True)
-        max_mos = list_mos[:number]
-        good_img = [img["image_name"] for img in cluster_list if img["MOS"] in max_mos]
-        rubbish_img = [img["image_name"] for img in cluster_list if img["MOS"] not in max_mos]
+        list_scores.sort(reverse = True)
+        max_scores = list_scores[:number]
+        good_img = [img["image_name"] for img in cluster_list if img[scores] in max_scores]
+        rubbish_img = [img["image_name"] for img in cluster_list if img[scores] not in max_scores]
 
     return good_img, rubbish_img
+
+
+
+def sorting_without_cluster_landscape(cluster_list):
+    """Function that returns 3 lists :
+    1- list of names of the BEST images to save (mos scores >= 70),
+    1- list of names of the  images to save (60 <= mos scores < 70),
+    2- list of names of the images to delete (mos score < 60)
+    given a list of image dictionary"""
+    excellent_img = list()
+    good_img = list()
+    rubbish_img = list()
+
+    for img in cluster_list:
+            if img['MOS'] < 60:
+                rubbish_img.append(img['image_name'])
+            elif img['MOS'] >= 60 and img['MOS'] < 70 :
+                good_img.append(img['image_name'])
+            else:
+                excellent_img.append(img['image_name'])
+
+    return excellent_img, good_img, rubbish_img
+
+
+
+def sorting_without_cluster_humain(cluster_list):
+    img_scores = [img["final_score"] for img in cluster_list]
+    img_scores.sort(reverse = True)
+
+    excellent_scores = img_scores[:int(len(img_scores) * 0.1)]
+    good_scores = img_scores[int(len(img_scores) * 0.1) : int(len(img_scores) * 0.5)]
+    rubbish_scores = img_scores[int(len(img_scores)* 0.5):]
+
+    excellent_img = [img["image_name"] for img in cluster_list if img["final_score"] in excellent_scores]
+    good_img = [img["image_name"] for img in cluster_list if img["final_score"] in good_scores]
+    rubbish_img = [img["image_name"] for img in cluster_list if img["final_score"] in rubbish_scores]
+    return excellent_img, good_img, rubbish_img
 
 
 
