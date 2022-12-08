@@ -3,49 +3,76 @@ from image_selector.models.sorting_rules.utils_sorting_rules import cluster_list
 from image_selector.models.sorting_rules.scores_sorting_rules import calculating_scores
 
 def sorting_img(list_dict_img, category):
-    """This fonction return 3 lists given a list of image dictionnary:
-    1- name list of the excellent pictures
-    2- name list of good pictures
-    3- name list of rubbish pictures """
+    """This fonction sort the name of the image into excellent, good or rubbish list.
+    It return 3 lists given a list of image dictionnary and a category (LANDSCAPE or PORTRAIT or GROUP):
+    1- list of the name of the excellent pictures
+    2- list of the name of the good pictures
+    3- list of the name of the rubbish pictures """
 
+    # Creating the 3 empty lists, which will be append with the name of the pictures
     excellent_list = list()
     good_list = list()
     rubbish_list = list()
 
+    # Sorting pictures from LANSCAPE category
     if category == "LANDSCAPE":
+
+        # 1. Calculating the number of clusters
         n_cluster = len(set([img["cluster"] for img in list_dict_img]))
+
+        # 2. Iterating on each cluster to sort the pictures
         for num in range(n_cluster):
+            # Creating a list with image-dictionnaries for each cluster
             list_cluster = cluster_list(list_dict_img, num)
+            # If the cluster number = 0 (no cluster), the pictures are sorted by their MOS score
+            # Adding the name of the picture to the 3 list (EXCELLENT, GOOD, RUBBISH)
             if num == 0:
                 excellent_img, good_img, rubbish_img = sorting_without_cluster_landscape(list_cluster)
                 excellent_list += excellent_img
                 good_list += good_img
                 rubbish_list += rubbish_img
+            # If the pictures are part of a cluster, 10% of the pictures with the best MOS score goes to the GOOD folder, the others to RUBBISH folder
+            # Adding the name of the picture to the 2 list (GOOD, RUBBISH)
             else:
                 pourcentage = math.ceil(len(list_cluster)*0.1)
                 good_img, rubbish_img = sorting_cluster(list_cluster, pourcentage, "MOS")
                 good_list += good_img
                 rubbish_list += rubbish_img
 
+
+    # Sorting pictures from PORTRAIT or GROUP categories
     if category == "PORTRAIT" or category == "GROUP":
-        # récupérer un dictionnaire avec tous les scores
+        # 1. Calculating and adding the final score to the dictionnaries for each picture
         list_dict_img = calculating_scores(list_dict_img)
 
+        # 2. Calculating the number of clusters
         n_cluster = len(set([img["cluster"] for img in list_dict_img]))
+
+        # 3. Iterating on each cluster to sort the pictures
         for num in range(n_cluster):
+            # Creating a list with image-dictionnaries for each cluster
             list_cluster = cluster_list(list_dict_img, num)
+            # If the cluster number = 0 (no cluster), the pictures are sorted by their final score
+            # Adding the name of the picture to the 3 list (EXCELLENT, GOOD, RUBBISH)
             if num == 0:
                 excellent_img, good_img, rubbish_img = sorting_without_cluster_humain(list_cluster)
                 excellent_list += excellent_img
                 good_list += good_img
                 rubbish_list += rubbish_img
+            # If the pictures are part of a cluster, 10% of the pictures with the best MOS score goes to the GOOD folder, the others to RUBBISH folder
+            # Adding the name of the picture to the 2 list (GOOD, RUBBISH)
             else:
                 pourcentage = math.ceil(len(list_cluster)*0.1)
                 good_img, rubbish_img = sorting_cluster(list_cluster, pourcentage, "final_score")
                 good_list += good_img
                 rubbish_list += rubbish_img
 
+
     return excellent_list, good_list, rubbish_list
+
+
+
+
 
 
 # if __name__ == '__main__':

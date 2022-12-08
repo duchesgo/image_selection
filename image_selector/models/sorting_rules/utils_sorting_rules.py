@@ -1,6 +1,8 @@
 def cluster_list(list_dict_img, number_cluster):
-    """Function that returns a list of image dictionnary from the same cluster,
-    given a list of image dictionnary and the number of the cluster """
+    """
+    The function returns a list of image-dictionnaries from the same cluster,
+    given a list of image-dictionnaries and the cluster number.
+    """
     cluster_list = list()
     for img in list_dict_img:
         if img["cluster"] == number_cluster:
@@ -10,10 +12,12 @@ def cluster_list(list_dict_img, number_cluster):
 
 
 def sorting_cluster(cluster_list, number, scores):
-    """Function that returns 2 lists :
-    1- list of names of the images to save (best mos scores),
-    2- list of names of the images to delete
-    given a cluster (format: list of image dictionary) and the number of best images to return"""
+    """
+    The function returns 2 lists :
+    1- a list of the names of the GOOD images
+    2- a list of the names of the RUBBISH images
+    given a cluster (format: list of image-dictionaries) and the number of GOOD images to choose.
+    """
     list_scores = [img[scores] for img in cluster_list]
     if number == 1:
         max_scores = max(list_scores)
@@ -29,11 +33,13 @@ def sorting_cluster(cluster_list, number, scores):
 
 
 def sorting_without_cluster_landscape(cluster_list):
-    """Function that returns 3 lists :
-    1- list of names of the BEST images to save (mos scores >= 70),
-    1- list of names of the  images to save (60 <= mos scores < 70),
-    2- list of names of the images to delete (mos score < 60)
-    given a list of image dictionary"""
+    """
+    The function returns 3 lists :
+    1- a list of the names of the EXCELLENT images (mos scores >= 70),
+    1- a list of the names of the GOOD images (60 <= mos scores < 70),
+    2- a list of the names of the RUBBISH images (mos score < 60)
+    given a list of image-dictionaries
+    """
     excellent_img = list()
     good_img = list()
     rubbish_img = list()
@@ -49,6 +55,14 @@ def sorting_without_cluster_landscape(cluster_list):
 
 
 def sorting_without_cluster_humain(cluster_list):
+    """
+    The function returns 3 lists :
+    1- a list of the names of the EXCELLENT images,
+    1- a list of the names of the GOOD images,
+    2- a list of the names of the RUBBISH images
+    given a list of image-dictionaries.
+    Following their final score, the best 10% goes to EXCELLENT, the following 50% to GOOD and the last 40% to RUBBISH.
+    """
     img_scores = [img["final_score"] for img in cluster_list]
     img_scores.sort(reverse = True)
 

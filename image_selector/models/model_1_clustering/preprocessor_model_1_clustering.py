@@ -1,11 +1,10 @@
 import numpy as np
-
 from tensorflow import image
-
 from keras.applications.vgg16 import preprocess_input
 
 # -----SUPPRIMER -----
 #from image_selector.models.model_1_clustering.getdata_model_1_clustering import img_to_ndarray, bmp_to_ndarray, jpg_to_ndarray
+
 
 
 def resize_X_clustering(X_list):
@@ -13,10 +12,12 @@ def resize_X_clustering(X_list):
     X_resize = [np.array(image.resize_with_pad(x, 224, 224)).astype('uint8') for x in X_list]
     return X_resize
 
+
 def input_X_clustering(X_list):
     """This function return a list a nparray-image given a list of tensor-image, using preprocess_input method"""
     X_preproc = [preprocess_input(x) for x in X_list]
     return X_preproc
+
 
 
 # -----SUPPRIMER -----
