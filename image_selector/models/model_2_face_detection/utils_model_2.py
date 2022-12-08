@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def visualize_cropped_faces(image_dict):
-    # Fonction qui, à partir du dictionnaire image_dict, imprime un fichier contenant
+        # Fonction qui imprime un fichier contenant
     #    l'image d'origine
     #    l'image avec les cadres autour des visages
     #    la photo de tous les visages identifiés
@@ -21,9 +21,12 @@ def visualize_cropped_faces(image_dict):
     for index, (image, ax) in enumerate(zip(list_faces_cropped, axes.flat)):
         ax.imshow(image)
         if index>=2:
-            ax.set_title(f"surface relative {image_dict['cropped_faces'][index-2]['relative_face_surface']:.2%}")
+            ax.set_title(f"{image_dict['cropped_faces'][index-2]['relative_face_surface']:.2%}-\
+                {image_dict['cropped_faces'][index-2]['face_surface']}-\
+                    {image_dict['cropped_faces'][index-2]['emotion']}")
 
     fig.suptitle(f"Found {image_dict['nb_faces']} faces!")
+    # fig.show()
 
     path_draft = os.getcwd()
     path_mkdir = f"DeepFace"
