@@ -26,8 +26,8 @@ image_dict_tp = {'image_name': image_name_tp,
 
 
 # Paramètres
-min_face_surface_in_image_tp = 0.004  # Surface minimale d'un visage pour être recevable
-threshold_tp = 0.9    # Seuil minimal de taille de détection des visages pour les fonctions detect_faces et extract_faces
+min_relative_face_surface_tp = 0.004  # Surface minimale relative d'un visage rapporté à la photo pour être recevable
+min_face_surface_tp = 2500            # Surface minimale d'un visage en pixel
 
 
 # metrics pour les fonctions .find() et .verify()
@@ -42,7 +42,7 @@ models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepID",
 backends = ['opencv', 'ssd', 'dlib', 'mtcnn', 'retinaface', 'mediapipe']
 
 
-def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=False):
+def face_detecting_DeepFace(image_dict, min_relative_face_surface, min_face_surface, visualize=False):
     # Fonction de détection de visages dans une image via DeepFace
     # xxxsss voir si on réintroduit min_face_surface_in_image ;
     # Input : un dictionnaire contenant a minima
@@ -57,6 +57,7 @@ def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=Fal
     #         emotion parmi : ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
 
 
+
     # ----- Travail sur la partie picturale des visages
     faces_pict_RetinaFace = []
     faces_pict_RetinaFace = RetinaFace.extract_faces(image_dict['image_array'], align = False, \
@@ -68,10 +69,11 @@ def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=Fal
     for face_pict in faces_pict_RetinaFace:
 
         # filtre qui élimine les visages trop petits
-        face_pict_surface = round((face_pict.shape[0] * face_pict.shape[1]) \
+        face_pict_surface = face_pict.shape[0] * face_pict.shape[1]
+        face_pict_relative_surface = round((face_pict.shape[0] * face_pict.shape[1]) \
                 / (image_dict['image_array'].shape[0] * image_dict['image_array'].shape[1]), 4)
 
-        if face_pict_surface > min_face_surface_in_image:
+        if (face_pict_relative_surface > min_relative_face_surface) and (face_pict_surface > min_face_surface):
             image_dict['nb_faces'] += 1
 
             cropped_face_dict = {}
@@ -86,7 +88,8 @@ def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=Fal
             plt.close()
             os.remove('array.png')
 
-            cropped_face_dict['relative_face_surface'] = face_pict_surface
+            cropped_face_dict['relative_face_surface'] = face_pict_relative_surface
+            cropped_face_dict['face_surface'] = face_pict_surface
 
             image_dict['cropped_faces'].append(cropped_face_dict)
 
@@ -108,12 +111,13 @@ def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=Fal
             w = face_info["facial_area"][2] - face_info["facial_area"][0]
             h = face_info["facial_area"][3] - face_info["facial_area"][1]
 
-            face_info_surface = round((w * h) \
+            face_info_surface = w * h
+            face_info_relative_surface = round((w * h) \
                 / (image_dict['image_array'].shape[0] * image_dict['image_array'].shape[1]), 4)
 
-            if face_info_surface > min_face_surface_in_image:
+            if (face_info_relative_surface > min_relative_face_surface) and (face_info_surface > min_face_surface):
                 image_with_faces = cv2.rectangle(image_with_faces, \
-                    (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    (x, y), (x+w, y+h), (255, 0, 0), 2)
 
     image_dict['image_with_faces'] = image_with_faces
 
@@ -131,6 +135,6 @@ def face_detecting_DeepFace(image_dict, min_face_surface_in_image, visualize=Fal
 if __name__=='__main__':
     print('Début test face_detecting')
     # ATTENTION à la gestion des variables ci-dessous pour l'appel de face_detecting
-    image_dict_test_name = face_detecting_DeepFace(image_dict_tp, min_face_surface_in_image_tp, visualize=False)
+    image_dict_test_name = face_detecting_DeepFace(image_dict_tp, min_relative_face_surface_tp, min_face_surface_tp, visualize=True)
     print(image_dict_test_name['nb_faces'])
     print('Fin test face_detecting')
